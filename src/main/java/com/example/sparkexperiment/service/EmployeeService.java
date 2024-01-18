@@ -14,7 +14,7 @@ import java.util.Map;
 @Service
 public class EmployeeService {
 
-    public List<Map<String, Object>> addEmployee(Employee employee) {
+    public List<Map<String,Object>> addEmployee(Employee employee) {
         SparkSession sparkSession = SparkSession.builder()
                 .appName("EmployeeManagement")
                 .master("local[*]")
@@ -32,7 +32,7 @@ public class EmployeeService {
                     )
             );
 
-            Dataset<Row> df = sparkSession.createDataFrame(employeedf, Employee.class);
+            Dataset<Row> df = sparkSession.createDataFrame(employeedf,Employee.class);
 
             Encoder<Map<String, Object>> mapEncoder = Encoders.kryo((Class<Map<String, Object>>) (Class<?>) Map.class);
 
