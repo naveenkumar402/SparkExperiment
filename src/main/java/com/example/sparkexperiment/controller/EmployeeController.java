@@ -16,7 +16,7 @@ public class EmployeeController {
     private EmployeeService employeeService;
 
     @PostMapping("/addEmployee")
-    public List<Row> addEmployee(@RequestBody Employee employee){
+    public List<Map<String,Object> addEmployee(@RequestBody Employee employee){
         return employeeService.addEmployee(employee);
     }
 }
