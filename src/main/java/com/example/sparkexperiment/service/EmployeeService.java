@@ -9,17 +9,18 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EmployeeService {
 
-    public List<Row> addEmployee(Employee employee){
-
-        SparkSession sparkSession=SparkSession.builder()
+    public List<Map<String, Object>> addEmployee(Employee employee) {
+        SparkSession sparkSession = SparkSession.builder()
                 .appName("EmployeeManagement")
                 .master("local[*]")
                 .getOrCreate();
-        try{
+
+        try {
             List<Row> employeedf = Arrays.asList(
                     RowFactory.create(
                             employee.getId(),
@@ -30,21 +31,27 @@ public class EmployeeService {
                             employee.getSalary()
                     )
             );
-            Dataset<Row> df=sparkSession.createDataFrame(employeedf,Employee.class);
 
-            Dataset<Row> mappedDF=df.map((MapFunction<Row, Row>) this::rowFunction, Encoders.bean(Row.class));
+            Dataset<Row> df = sparkSession.createDataFrame(employeedf, Employee.class);
+
+            Encoder<Map<String, Object>> mapEncoder = Encoders.kryo((Class<Map<String, Object>>) (Class<?>) Map.class);
+
+            Dataset<Map<String, Object>> mappedDF = df.map((MapFunction<Row, Map<String, Object>>) this::rowToMap, mapEncoder);
+
             return mappedDF.collectAsList();
-        }
-        finally {
+        } finally {
             sparkSession.stop();
         }
-
-    }
-    private Row rowFunction(Row row) {
-        String updatedName = row.getString(2);
-        String email = row.getString(1)+ " (Mapped)";
-        return RowFactory.create(row.getLong(0),email,updatedName,row.getString(3),row.getLong(4),row.getDouble(5));
     }
 
-
+    private Map<String, Object> rowToMap(Row row) {
+        Map<String, Object> resultMap = new java.util.HashMap<>();
+        resultMap.put("id", row.getLong(0));
+        resultMap.put("email", row.getString(1) + " (Mapped)");
+        resultMap.put("name", row.getString(2));
+        resultMap.put("password", row.getString(3));
+        resultMap.put("mobile", row.getLong(4));
+        resultMap.put("salary", row.getDouble(5));
+        return resultMap;
+    }
 }
